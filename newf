@@ -1,0 +1,82 @@
+#!/bin/bash -f
+
+# Add to .zshrc alias ff="source newf"
+#
+# Usage:
+#
+# $> ff search_string
+#
+# Will result in numbered find output
+# Pressing 0, 1, 2 keys will lead you to specific destination
+# Requires zsh and zsh alias -s for filetypes (alias -s php=vim) to open php file in vim
+#
+# Creates aliases on the fly
+
+
+COLOR_PURPLE='\033[0;34m'
+COLOR_NC='\033[0m' # No Color
+COLOR_WHITE='\033[1;37m'
+COLOR_LIGHT_GREEN='\033[1;32m'
+COLOR_LIGHT_GRAY='\033[0;37m'
+
+j=0
+if [[ -f ~/.tmp/findAliases ]]; then
+    ALIAS_COUNT=`cat ~/.tmp/findAliases | wc -l`
+else
+    ALIAS_COUNT=0
+fi
+
+mkdir -p ~/.tmp
+rm -f ~/.tmp/findAliases
+rm -f ~/.tmp/lastFind
+rm -f ~/.tmp/ffindResults
+
+for (( k=0; k < ${ALIAS_COUNT}; k++ )); do
+    unalias ${k} 2>/dev/null
+done
+
+
+
+# Get 1st argument
+file="${@[1,1]}"
+touch ~/.tmp/ffindResults
+touch ~/.tmp/findAliases
+touch ~/.tmp/lastFind
+
+
+grepSearch=`echo ${@} | grep -P -o "(?<=grep ).*"`
+
+    echo  "${COLOR_LIGHT_GREEN}__________________________________Searching for ${COLOR_WHITE}${file}${COLOR_NC}"
+
+#   find . -iname "*${i}*" ! -name "*.o" ! -name "*.so" -print 2>/dev/null |  sed -e 's/[]\/()$*.^|[]/\\&/g' | sed -e 's/ /\\ /g' | sed -e 's/"/\\\"/g' | sed -e "s/'/\\\'/g" | grep --color -i ${i} >> ~/.tmp/ffindResults
+#	find . -iname "*${i}*" -print 2>/dev/null | sed -e 's/[]\/() $.*^|[]/\\&/g' | sed -e 's/"/\\/g' | sed -e "s/'/\'/g" >> ~/.tmp/ffindResults 
+	find . -iname "*${file}*" -print 2>/dev/null | sed -e 's/[]\/() $.*^|[]/\\&/g' | sed -e 's/"/\\/g' | sed -e "s/'/\'/g" >> ~/.tmp/ffindResults 
+
+
+            if [[ -n ${grepSearch} ]]; then
+				sed -i "/${grepSearch}/I!d" ~/.tmp/ffindResults
+           	fi
+
+    while read -r line;do
+
+            if [[ -n ${grepSearch} ]]; then
+            	echo "${COLOR_LIGHT_GREEN} ${j} ${COLOR_NC} : ${COLOR_NC}${line}" | sed 's@\\@@g' | grep -i ${grepSearch}
+            else
+            	echo "${COLOR_LIGHT_GREEN} ${j} ${COLOR_NC} : ${COLOR_NC}${line}" | sed 's@\\@@g' | grep -i ${file}
+           	fi
+
+           	echo ${j} ':' ${PWD}/${line}  >> ~/.tmp/lastFind
+            echo "alias -g ${j}=\"${PWD}/${line}\" " >> ~/.tmp/findAliases
+
+            j=$((j+1))
+    done < ~/.tmp/ffindResults
+    echo  "${COLOR_LIGHT_GREEN}__________________________________${COLOR_NC}"
+
+
+if [[ ! -f ~/.tmp/findAliases ]]; then
+    echo "No matches found"
+else
+    . ~/.tmp/findAliases
+fi
+
+

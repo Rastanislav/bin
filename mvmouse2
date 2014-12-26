@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xdotool mousemove 2570 533

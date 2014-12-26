@@ -1,0 +1,12 @@
+#!/bin/bash
+
+    array=(`echo $@ | tr '/' ' '`) 
+    arraySize=${#array[@]} 
+    file=${array[$arraySize-1]} 
+    unset array[${#array[@]}-1]
+    for elem in "${array[@]}"
+    do
+        mkdir $elem
+        cd $elem
+    done
+    vim $file

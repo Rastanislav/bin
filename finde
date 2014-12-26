@@ -1,0 +1,27 @@
+#!/bin/bash -f
+
+# Execute command on all the files from "find". Not recursive
+# finde [where] <what> <command1> {} [dir/command]
+#
+# EX: Copy all .cpp files from foo/ to bar/
+# finde foo/ "*.cpp" cp {} bar/
+#
+# EX: Copy all .cpp files from current directory to bar/
+#finde . "*.cpp" cp {} bar/
+
+#TODO add checks for correct input 
+
+
+# Get 1st argument
+dir=${@:1:1}
+if [ ${dir} == "."  ] ;then
+    dir=""
+fi
+
+search="${@:2:1}"
+argsCut=`echo "${@:3}"`
+
+
+cmd=(`echo ${argsCut} | awk -F "{}" '{print $1 $2}'`)
+find . ${dir} -maxdepth 1 -iname ${search} -exec ${cmd[0]} {} ${cmd[1]} \;
+

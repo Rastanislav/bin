@@ -1,0 +1,61 @@
+#!/bin/bash -f
+
+COLOR_PURPLE='\033[0;34m'
+COLOR_NC='\033[0m' # No Color
+COLOR_WHITE='\033[1;37m'
+COLOR_LIGHT_GREEN='\033[1;32m'
+COLOR_LIGHT_GRAY='\033[0;37m'
+
+j=0
+if [[ -f ~/.tmp/grepAliases ]]; then
+    ALIAS_COUNT=`cat ~/.tmp/grepAliases | wc -l`
+else
+    ALIAS_COUNT=0
+fi
+
+mkdir -p ~/.tmp
+rm -f ~/.tmp/grepAliases
+rm -f ~/.tmp/lastGrep
+rm -f ~/.tmp/grepResults
+
+
+alias grepP='grep -irnsP "${1}"'
+
+# When no arguments passed remove all aliases if there is any
+
+if [ ${1} = '--una' ]; then
+    for (( k=0; k < ${ALIAS_COUNT}; k++ )); do
+        unalias ${k} 2>/dev/null
+    done
+
+    echo 'Unaliased all aliases for gg'
+    return
+fi
+
+for (( k=0; k < ${ALIAS_COUNT}; k++ )); do
+    unalias ${k} 2>/dev/null
+done
+
+echo  "${COLOR_LIGHT_GREEN}__________________________________Grepping for ${COLOR_WHITE}${1}${COLOR_NC}"
+# TODO Specify folder where to search if not empty
+
+grep -lirns ${1}  | sed -e 's/[]\/() $.*^|[]/\\&/g' | sed -e 's/"/\\/g' | sed -e "s/'/\'/g" >> ~/.tmp/grepResults
+
+
+while read -r line;do
+    echo "${COLOR_LIGHT_GREEN} ${j} ${COLOR_NC} : ${COLOR_NC}${line}" | sed 's@\\@@g' | grep -i "${1}"
+    FORMATTED_LINE=`echo "${line}" | sed 's/\:.*//'`
+
+    echo ${j} ':' ${PWD}/${line}  >> ~/.tmp/lastGrep
+    echo "alias -g ${j}=\"${PWD}/${FORMATTED_LINE}\" " >> ~/.tmp/grepAliases
+
+    j=$((j+1))
+done < ~/.tmp/grepResults
+
+echo  "${COLOR_LIGHT_GREEN}__________________________________${COLOR_NC}"
+
+if [[ ! -f ~/.tmp/grepAliases ]]; then
+    echo "No matches found"
+else
+    . ~/.tmp/grepAliases
+fi

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+xdotool mousemove 794 448
+#eval $(xdotool getmouselocation --shell)
+#echo $X,$Y
+#x:2570 y:533 
+#x:794 y:448

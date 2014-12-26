@@ -1,0 +1,7 @@
+#!/bin/bash 
+
+# Load list of matches from ff 
+
+lff
+numOfAliases=$(wc -l findAliases | cut -d ' ' -f1)
+#for each num do echo
