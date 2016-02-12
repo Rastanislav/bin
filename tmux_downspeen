@@ -1,0 +1,40 @@
+#!/bin/bash
+RXB=0
+for rxbytes in /sys/class/net/*/statistics/rx_bytes ; do
+  let RXB+=$(<$rxbytes)
+done
+
+sleep 2
+
+RXBN=0
+for rxbytes in /sys/class/net/*/statistics/rx_bytes ; do
+  let RXBN+=$(<$rxbytes)
+done
+#divide by two for the period, multiply by 10 to allow a correct decimal place
+RXDIF=$(echo $(((RXBN - RXB) *5  )))
+
+SPEEDD="B/s"
+ARROW="↓ "
+if [ $RXDIF -ge 10240 ]; then
+	SPEEDD="Kb/s"
+	RXDIF=$(echo $((RXDIF / 1024 )) )
+fi
+
+if [ $RXDIF -ge 10240 ]; then
+	SPEEDD="Mb/s"
+	RXDIF=$(echo $((RXDIF / 1024 )) )
+fi
+
+if [ $RXDIF -ge 10240 ]; then
+	SPEEDD="Gb/s"
+	RXDIF=$(echo $((RXDIF / 1024 )) )
+fi
+RXDIFF=$(($RXDIF % 10 ))
+RXDIFI=$(( $RXDIF / 10 ))
+RXDIF="$RXDIFI"
+
+if [ $RXDIFF -ne 0 ]; then
+	RXDIF=$( echo  "$RXDIFI.$RXDIFF" )
+fi
+
+echo "$ARROW $RXDIF$SPEEDD"
